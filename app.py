@@ -22,22 +22,19 @@ class Car(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'),
         nullable=False)
 
-
-## Routes for users
-@app.route('/users', methods=['POST', 'GET'])
-def users():
-
-    ## Create new user
-    if request.method == 'POST':
+##Create a user
+@app.route('/users', methods=['POST'])
+def create_user():
         data = request.json
         new_user = User(username=data['username'], email=data['email'], password=data['password'])
         db.session.add(new_user)
         db.session.commit()
 
         return {"message": "User created successfully"}
-    
-    ## Get all users
-    elif request.method == 'GET':
+
+##Get all users
+@app.route('/users', methods=['GET'])
+def get_users():
         all_users = User.query.all()
 
         results = []
@@ -50,21 +47,34 @@ def users():
             results.append(users)
         return results
 
-##Routes for cars
-@app.route('/cars/<user_id>', methods=['POST', 'GET'])
-def cars(user_id):
+##Route for getting user by ID
+@app.route('/users/<user_id>', methods=['GET'])
+def get_user(user_id):
+    users = User.query.filter_by(id=int(user_id)).all()
 
-    ##Create new car
-    if request.method == 'POST':
+    results = []
+
+    for user in users:
+        users = {
+            "username": user.username,
+            "email": user.email
+        }
+        results.append(users)
+    return results
+
+#Create a car
+@app.route('/cars/<user_id>', methods=['POST'])
+def create_car(user_id):
         data = request.json
         new_car = Car(make=data['make'], model=data['model'], user_id=int(user_id))
         db.session.add(new_car)
         db.session.commit()
         
         return jsonify(data)
-    
-    ##Get cars by user ID
-    elif request.method == 'GET':
+
+##Get car by user id
+@app.route('/cars/<user_id>', methods=['GET'])
+def get_car(user_id):
         data = Car.query.filter_by(user_id=int(user_id)).all()
 
         results = []
@@ -78,4 +88,3 @@ def cars(user_id):
         
         return results
 
-        
